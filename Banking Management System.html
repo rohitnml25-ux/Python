@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Banking Management System</title>
+<style>
+:root{--bg:#f4f8f8;--card:#ffffff;--text:#1a1a1a;--muted:#5b6b70;--accent:#1f4e9e;--on-accent:#ffffff;--teal:#8fb5b3;--border:#d5e2e3;--ok:#1b7f4b;--err:#b3261e;--code:#f0f4f6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1416;--card:#182024;--text:#e6eef0;--muted:#9fb1b6;--accent:#7fb2ff;--on-accent:#0b1220;--teal:#4f7573;--border:#2a363b;--ok:#6fd49a;--err:#ff8a80;--code:#111a1d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1416;--card:#182024;--text:#e6eef0;--muted:#9fb1b6;--accent:#7fb2ff;--on-accent:#0b1220;--teal:#4f7573;--border:#2a363b;--ok:#6fd49a;--err:#ff8a80;--code:#111a1d;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Times New Roman",Georgia,serif;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+header{border-bottom:4px solid var(--teal);padding-bottom:14px;margin-bottom:20px;display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+h1{margin:0;font-size:clamp(26px,5vw,38px);color:var(--accent)}
+.sub{color:var(--muted);margin:4px 0 0}
+h2{font-size:21px;margin:0 0 10px;color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;min-width:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.sec{font-weight:bold;margin:12px 0 6px}
+input,select{font:inherit;padding:7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);flex:1;min-width:90px}
+button{font:inherit;padding:7px 14px;border:0;border-radius:6px;background:var(--accent);color:var(--on-accent);cursor:pointer;font-weight:bold}
+button.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+#msg{min-height:1.6em;margin:0 0 16px;font-weight:bold}
+.ok{color:var(--ok)}.err{color:var(--err)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th{background:var(--accent);color:var(--on-accent);text-align:left}
+th,td{padding:6px 9px;border:1px solid var(--border);white-space:nowrap}
+td.n,th.n{text-align:right}
+pre{background:var(--code);padding:12px;border-radius:8px;overflow-x:auto;font-size:13px;margin:0}
+ul,ol{margin:0;padding-left:20px}li{margin-bottom:4px}
+footer{color:var(--muted);font-size:14px;border-top:1px solid var(--border);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div>
+  <h1>Banking Management System</h1>
+  <p class="sub">Python Programming Lab (N-PCCCM304P) · Experiential Learning Project</p>
+  <p class="sub">Rohit Harish Nagarkoti [CM25108] · Guide: Mrs. Mayuri Getme · S. B. Jain Institute of Technology, Management &amp; Research, Nagpur</p>
+ </div>
+ <button class="alt" id="theme">Toggle theme</button>
+</header>
+
+<h2>Try it: live demo</h2>
+<p class="sub" style="margin-bottom:12px">This page runs the same logic as the Python program: unique account numbers, validation, transfers and a transaction history. Data is saved only in your own browser.</p>
+<div id="msg" role="status" aria-live="polite"></div>
+
+<div class="grid">
+ <div class="card">
+  <h2>Operations</h2>
+  <div class="sec">Create account</div>
+  <div class="row"><input id="cName" placeholder="Customer name"><input id="cInit" type="number" min="0" placeholder="Initial deposit"></div>
+  <button id="bCreate">Create account</button>
+  <div class="sec">Deposit / Withdraw</div>
+  <div class="row"><input id="oAcc" type="number" placeholder="Account No"><input id="oAmt" type="number" min="0" placeholder="Amount"></div>
+  <div class="row"><button id="bDep">Deposit</button><button id="bWd">Withdraw</button></div>
+  <div class="sec">Fund transfer</div>
+  <div class="row"><input id="tFrom" type="number" placeholder="From Acc No"><input id="tTo" type="number" placeholder="To Acc No"><input id="tAmt" type="number" min="0" placeholder="Amount"></div>
+  <button id="bTr">Transfer</button>
+  <div class="sec">Search / balance</div>
+  <div class="row"><input id="sAcc" type="number" placeholder="Account No"><button id="bBal" class="alt">Check balance</button></div>
+ </div>
+ <div class="card">
+  <h2>Account records</h2>
+  <div class="scroll"><table><thead><tr><th>Acc No</th><th>Name</th><th class="n">Balance</th></tr></thead><tbody id="accRows"></tbody></table></div>
+  <div style="margin-top:12px"><button class="alt" id="bReset">Reset sample data</button></div>
+ </div>
+</div>
+
+<div class="card" style="margin-bottom:24px">
+ <h2>Account statement</h2>
+ <div class="row"><select id="stSel"></select></div>
+ <div class="scroll"><table><thead><tr><th>Time</th><th>Type</th><th class="n">Amount</th><th class="n">Balance</th></tr></thead><tbody id="stRows"></tbody></table></div>
+</div>
+
+<h2>About the project</h2>
+<div class="grid">
+ <div class="card"><h2>Problem statement</h2><ul>
+  <li>Manual banking record keeping is slow and error-prone.</li>
+  <li>Each customer needs a unique account number.</li>
+  <li>The system must support account creation, deposits, withdrawals and transfers.</li>
+  <li>It must keep a transaction history and reject invalid transactions such as insufficient balance.</li></ul></div>
+ <div class="card"><h2>Objectives</h2><ul>
+  <li>Create accounts with unique account numbers.</li>
+  <li>Deposit, withdraw and transfer funds securely.</li>
+  <li>View balances and a complete transaction history.</li>
+  <li>Store and retrieve data using file handling.</li></ul></div>
+ <div class="card"><h2>Algorithm</h2><ol>
+  <li>Open the account file or database.</li>
+  <li>Choose an operation.</li>
+  <li>Validate the account number and amount.</li>
+  <li>Update the balance and the transaction history.</li>
+  <li>Display the result or an error.</li></ol></div>
+ <div class="card"><h2>Python concepts used</h2><ul>
+  <li>Control structures and menu loop</li>
+  <li>Dictionaries and lists</li>
+  <li>Functions and exceptions</li>
+  <li>pandas for the CSV statement</li>
+  <li>File handling (JSON) and OOP</li></ul></div>
+</div>
+<div class="card" style="margin-bottom:24px"><h2>Core Python logic</h2>
+<pre>class Account:
+    def withdraw(self, amount, kind="Withdraw"):
+        if amount &lt;= 0:
+            raise ValueError("Amount must be positive")
+        if amount &gt; self.balance:
+            raise InsufficientBalance("Insufficient Balance")
+        self.balance -= amount
+        self._log(kind, amount)
+
+def transfer(self, src, dst, amount):
+    a, b = self.get(src), self.get(dst)
+    a.withdraw(amount, "Transfer Out")   # raises before anything changes
+    b.deposit(amount, "Transfer In")
+    self.save()</pre></div>
+<footer>Department of CSE (AI&amp;ML) · Session 2026–27 (ODD) · An Autonomous Institute, Affiliated to RTMNU, Nagpur</footer>
+</div>
+<script>
+var KEY="bms_accounts_v1", accounts={};
+var $=function(id){return document.getElementById(id)};
+function now(){return new Date().toLocaleString("en-IN")}
+function money(v){return "₹"+Number(v).toLocaleString("en-IN")}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function seed(){
+  accounts={};
+  [[1001,"Amit Sharma",5000],[1002,"Priya Verma",12500],[1003,"Rohit Nagarkoti",8750],[1004,"Sneha Kulkarni",3200],[1005,"Karan Mehta",15000]].forEach(function(r){
+    accounts[r[0]]={name:r[1],balance:r[2],history:[{time:now(),type:"Opening Deposit",amount:r[2],balance:r[2]}]};
+  });
+}
+function load(){try{var r=localStorage.getItem(KEY);if(r){accounts=JSON.parse(r);return}}catch(e){}seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(accounts))}catch(e){}}
+function get(v){var n=parseInt(v,10);if(!accounts[n])throw new Error("Account Not Found");return accounts[n]}
+function amt(v){var a=parseFloat(v);if(!(a>0))throw new Error("Amount must be positive");return a}
+function log(a,type,amount){a.history.push({time:now(),type:type,amount:amount,balance:a.balance})}
+function deposit(a,x,kind){a.balance+=x;log(a,kind||"Deposit",x)}
+function withdraw(a,x,kind){if(x>a.balance)throw new Error("Insufficient Balance");a.balance-=x;log(a,kind||"Withdraw",x)}
+function say(t,ok){var m=$("msg");m.textContent=t;m.className=ok?"ok":"err"}
+function run(fn,okMsg){
+  try{var extra=fn();save();render();say(extra||okMsg,true)}catch(e){say("Error: "+e.message,false)}
+}
+function render(){
+  var keys=Object.keys(accounts).map(Number).sort(function(a,b){return a-b});
+  $("accRows").innerHTML=keys.map(function(k){var a=accounts[k];return "<tr><td>"+k+"</td><td>"+esc(a.name)+"</td><td class='n'>"+money(a.balance)+"</td></tr>"}).join("");
+  var sel=$("stSel"),cur=sel.value;
+  sel.innerHTML=keys.map(function(k){return "<option value='"+k+"'>"+k+" – "+esc(accounts[k].name)+"</option>"}).join("");
+  if(cur&&accounts[cur])sel.value=cur;
+  statement();
+}
+function statement(){
+  var a=accounts[$("stSel").value];
+  $("stRows").innerHTML=a?a.history.map(function(t){return "<tr><td>"+esc(t.time)+"</td><td>"+esc(t.type)+"</td><td class='n'>"+money(t.amount)+"</td><td class='n'>"+money(t.balance)+"</td></tr>"}).join(""):"";
+}
+$("bCreate").onclick=function(){run(function(){
+  var name=$("cName").value.trim();if(!name)throw new Error("Name is required");
+  var init=parseFloat($("cInit").value)||0;if(init<0)throw new Error("Amount must be positive");
+  var n=Math.max.apply(null,Object.keys(accounts).map(Number).concat([1000]))+1;
+  var a={name:name,balance:0,history:[]};if(init>0)deposit(a,init,"Opening Deposit");
+  accounts[n]=a;$("cName").value="";$("cInit").value="";
+  return "Account Created Successfully. Account No: "+n;
+})};
+$("bDep").onclick=function(){run(function(){var a=get($("oAcc").value);deposit(a,amt($("oAmt").value));return "Deposit Successful. Current Balance: "+money(a.balance)})};
+$("bWd").onclick=function(){run(function(){var a=get($("oAcc").value);withdraw(a,amt($("oAmt").value));return "Withdrawal Successful. Current Balance: "+money(a.balance)})};
+$("bTr").onclick=function(){run(function(){
+  var a=get($("tFrom").value),b=get($("tTo").value);
+  if(a===b)throw new Error("Cannot transfer to the same account");
+  var x=amt($("tAmt").value);withdraw(a,x,"Transfer Out");deposit(b,x,"Transfer In");
+  return "Transfer Successful";
+})};
+$("bBal").onclick=function(){run(function(){return "Current Balance: "+money(get($("sAcc").value).balance)})};
+$("bReset").onclick=function(){seed();save();render();say("Sample data restored",true)};
+$("stSel").onchange=statement;
+$("theme").onclick=function(){
+  var r=document.documentElement,dark=r.getAttribute("data-theme")?r.getAttribute("data-theme")==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;
+  r.setAttribute("data-theme",dark?"light":"dark");
+};
+load();render();
+</script>
+</body>
+</html>
